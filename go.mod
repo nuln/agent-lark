@@ -5,6 +5,7 @@ go 1.26.2
 require (
 	github.com/larksuite/oapi-sdk-go/v3 v3.5.3
 	github.com/nuln/agent-core v0.0.0-beta1
+	github.com/nuln/ai-agent v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.11.1
 )
 
@@ -16,3 +17,5 @@ require (
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/nuln/ai-agent => ../../../

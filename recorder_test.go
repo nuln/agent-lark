@@ -79,7 +79,7 @@ func TestDialogRecorder_Table(t *testing.T) {
 			assert.True(t, ok)
 
 			var log larkMessageLog
-			json.Unmarshal(data, &log)
+			_ = json.Unmarshal(data, &log)
 			tt.validate(t, log)
 		})
 	}

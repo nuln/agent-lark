@@ -120,6 +120,7 @@ func newAccess(name, domain string, opts map[string]any) (agent.Dialog, error) {
 	var clientOpts []lark.ClientOptionFunc
 	if domain != lark.FeishuBaseUrl {
 		clientOpts = append(clientOpts, lark.WithOpenBaseUrl(domain))
+		_ = clientOpts
 	}
 
 	base := &LarkAccess{
