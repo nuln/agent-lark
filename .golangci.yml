@@ -31,6 +31,10 @@ issues:
   exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0
+  exclude-rules:
+    - path: i18n.go
+      linters:
+        - misspell
 
 run:
   timeout: 5m

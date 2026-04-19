@@ -16,16 +16,14 @@ coverage:
 	go tool cover -html=coverage.out -o coverage.html
 
 tidy:
-	@if [ -f go.work ]; then \
-		echo "go.work exists, skipping go mod tidy"; \
-	else \
-		go mod tidy; \
-		go mod verify; \
-	fi
+	go mod tidy
+	go mod verify
 
 check: tidy
 	go vet ./...
+	go mod tidy
 
 clean:
 	rm -f coverage.out coverage.html
 	go clean -testcache
+

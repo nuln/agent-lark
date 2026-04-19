@@ -24,6 +24,7 @@ import (
 	larkcontact "github.com/larksuite/oapi-sdk-go/v3/service/contact/v3"
 	larkim "github.com/larksuite/oapi-sdk-go/v3/service/im/v1"
 	larkws "github.com/larksuite/oapi-sdk-go/v3/ws"
+	"github.com/nuln/ai-agent/plugins/common"
 )
 
 func init() {
@@ -72,6 +73,7 @@ type LarkAccess struct {
 	botOpenID             string
 	userNameCache         sync.Map // open_id -> display name
 	cardNavHandler        agent.CardNavigationHandler
+	storage               agent.KVStoreProvider // injected by Engine for interaction logging
 }
 
 type InteractiveLarkAccess struct {
@@ -131,7 +133,6 @@ func newAccess(name, domain string, opts map[string]any) (agent.Dialog, error) {
 		groupReplyAll:         groupReplyAll,
 		shareSessionInChannel: shareSessionInChannel,
 		replyInThread:         replyInThread,
-		client:                lark.NewClient(appID, appSecret, clientOpts...),
 	}
 	if !useInteractiveCard {
 		base.self = base
@@ -155,6 +156,21 @@ func (p *LarkAccess) Name() string { return p.accessName }
 
 func (p *LarkAccess) Start(handler agent.MessageHandler) error {
 	p.handler = handler
+
+	var clientOpts []lark.ClientOptionFunc
+	if p.domain != lark.FeishuBaseUrl {
+		clientOpts = append(clientOpts, lark.WithOpenBaseUrl(p.domain))
+	}
+
+	// Persistent Token Cache
+	if p.storage != nil {
+		if store, err := p.storage.GetStore("tokens"); err == nil {
+			cache := &larkTokenCache{store: common.NewKVTokenStore(store)}
+			clientOpts = append(clientOpts, lark.WithTokenCache(cache))
+		}
+	}
+
+	p.client = lark.NewClient(p.appID, p.appSecret, clientOpts...)
 
 	if openID, err := p.fetchBotOpenID(); err != nil {
 		slog.Warn(p.accessName+": failed to get bot open_id, group chat filtering disabled", "error", err)
@@ -372,6 +388,20 @@ func (p *LarkAccess) addReaction(messageID string) string {
 		return *resp.Data.ReactionId
 	}
 	return ""
+}
+
+// larkTokenCache adapts KVTokenStore to the larkcore.Cache interface.
+type larkTokenCache struct {
+	store *common.KVTokenStore
+}
+
+func (c *larkTokenCache) Set(ctx context.Context, key string, value string, expireTime time.Duration) error {
+	return c.store.Set(ctx, key, value, expireTime)
+}
+
+func (c *larkTokenCache) Get(ctx context.Context, key string) (string, error) {
+	val := c.store.Get(ctx, key)
+	return val, nil
 }
 
 func (p *LarkAccess) removeReaction(messageID, reactionID string) {
