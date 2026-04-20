@@ -32,6 +32,7 @@ func init() {
 		PluginName:  "lark",
 		PluginType:  "dialog",
 		Description: "Lark/Feishu messaging platform integration",
+		AuthType:    agent.AuthTypeToken,
 		Fields: []agent.ConfigField{
 			{EnvVar: "LARK_APP_ID", Key: "app_id", Description: "Lark application ID", Required: true, Type: agent.ConfigFieldString},
 			{EnvVar: "LARK_APP_SECRET", Key: "app_secret", Description: "Lark application secret", Required: true, Type: agent.ConfigFieldSecret},
